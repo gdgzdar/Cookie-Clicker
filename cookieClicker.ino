@@ -2,8 +2,10 @@
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
 byte cookieBtn = 6;                  // pin tlačítka pro počítání cookies
+byte currentStateCookieBtn;          // aktuální stav tlačítka pro počítání cookies
 byte lastStateCookieBtn = 0;         // minulý stav tlačítka pro počítání cookies
 byte multiplierBtn = 7;              // pin tlačítka pro násobič přičítané hodnoty
+byte currentStateMultiplierBtn = 0;  // aktuální stav tlačítka pro násobič přičítané hodnoty
 byte lastStateMultiplierBtn = 0;     // minulý stav tlačítka pro násobič přičítané hodnoty
 unsigned long cookiesQuantity =  0;  // celkový počet cookies
 long increment = 1;                  // přičítaná hodnota
@@ -13,23 +15,27 @@ void setup() {
   lcd.clear();     
   pinMode(cookieBtn, INPUT);
   pinMode(multiplierBtn, INPUT);    
-  }
+}
 
 void loop() {
-  if(digitalRead(cookieBtn) == 1 && lastStateCookieBtn == 0){
+  
+  currentStateCookieBtn = digitalRead(cookieBtn);
+  currentStateMultiplierBtn = digitalRead(multiplierBtn);
+  
+  if(currentStateCookieBtn == 1 && lastStateCookieBtn == 0){
     cookiesQuantity += increment;
     lastStateCookieBtn = 1;
   }
-  else if (digitalRead(cookieBtn) == 0 && lastStateCookieBtn == 1)     lastStateCookieBtn = 0;
+  else if (currentStateCookieBtn == 0 && lastStateCookieBtn == 1)     lastStateCookieBtn = 0;
   
-  if(digitalRead(multiplierBtn) == 1 && lastStateMultiplierBtn == 0){  
+  if(currentStateMultiplierBtn == 1 && lastStateMultiplierBtn == 0){  
     if(cookiesQuantity > 29){
       increment *= 2;
       cookiesQuantity -= 30;         
     }
     lastStateMultiplierBtn = 1;
   }
-  else if (digitalRead(multiplierBtn) == 0 && lastStateMultiplierBtn == 1) lastStateMultiplierBtn = 0;
+  else if (currentStateMultiplierBtn == 0 && lastStateMultiplierBtn == 1) lastStateMultiplierBtn = 0;
   
   
   delay(50);
