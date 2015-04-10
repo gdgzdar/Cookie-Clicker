@@ -9,7 +9,8 @@ byte currentStateMultiplierBtn = 0;  // aktuální stav tlačítka pro násobič
 byte lastStateMultiplierBtn = 0;     // minulý stav tlačítka pro násobič přičítané hodnoty
 unsigned long cookiesQuantity =  0;  // celkový počet cookies
 long increment = 1;                  // přičítaná hodnota
-int priceOfMultiplier = 30;          // cena násobiče cookies
+int priceOfMultiplier[] = {30,40,70,100,150,250,600,9999999};          // cena násobiče cookies
+byte counterMultiplierBuy = 0;      // kolikrát koupeno
 
 void setup() {
   lcd.begin(16, 2);
@@ -30,10 +31,10 @@ void loop() {
   else if (currentStateCookieBtn == 0 && lastStateCookieBtn == 1)     lastStateCookieBtn = 0;
   
   if(currentStateMultiplierBtn == 1 && lastStateMultiplierBtn == 0){  
-    if(cookiesQuantity >= priceOfMultiplier){
+    if(cookiesQuantity >= priceOfMultiplier[counterMultiplierBuy]){
       increment *= 2;
-      cookiesQuantity -= priceOfMultiplier;         
-      priceOfMultiplier *= 2;
+      cookiesQuantity -= priceOfMultiplier[counterMultiplierBuy];         
+      counterMultiplierBuy++;
     }
     lastStateMultiplierBtn = 1;
   }
