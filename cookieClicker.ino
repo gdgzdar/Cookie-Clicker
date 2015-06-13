@@ -8,46 +8,91 @@ byte multiplierBtn = 7;              // pin tlačítka pro násobič přičítan
 byte currentStateMultiplierBtn = 0;  // aktuální stav tlačítka pro násobič přičítané hodnoty
 byte lastStateMultiplierBtn = 0;     // minulý stav tlačítka pro násobič přičítané hodnoty
 
-byte shopBtn1 = 15;
-byte currentStateShopBtn1; 
-byte lastStateShopBtn1 = 0;
+byte shopFarmBtn = 15;
+byte currentStateShopFarmBtn; 
+byte lastStateShopFarmBtn = 0;
 
-byte shopBtn2 = 16;
-byte currentStateShopBtn2; 
-byte lastStateShopBtn2 = 0;
+byte shopFactoryBtn = 16;
+byte currentStateShopFactoryBtn; 
+byte lastStateShopFactoryBtn = 0;
 
-byte shopBtn3 = 17;
-byte currentStateShopBtn3; 
-byte lastStateShopBtn3 = 0;
+byte shopMineBtn = 17;
+byte currentStateShopMineBtn; 
+byte lastStateShopMineBtn = 0;
 
-byte shopBtn4 = 18;
-byte currentStateShopBtn4; 
-byte lastStateShopBtn4 = 0;
+byte shopClonerBtn = 18;
+byte currentStateShopClonerBtn; 
+byte lastStateShopClonerBtn = 0;
 
 unsigned long cookiesQuantity =  0;  // celkový počet cookies
 long increment = 1;                  // přičítaná hodnota
 int priceOfMultiplier[] = {10,20,30,40,50,250,600,9999999};          // cena násobiče cookies
 byte counterMultiplierBuy = 0;       // kolikrát koupeno
-String infoMsg;                      // zprava
+
+long priceFarm = 100;
+byte percentageRaiseFarm = 10;
+int addFarm = 5;
+
+long priceFactory = 500;
+byte percentageRaiseFactory = 15;
+int addFactory = 15;
+
+long priceMine = 5000;
+byte percentageRaiseMine = 35;
+int addMine = 30;
+
+long priceCloner = 10000;
+byte percentageRaiseCloner = 50;
+int addCloner = 100;
+
+
+String infoMsg;
 unsigned long msgDelay = 0;
+
+long perSecondAdd = 0;
+long lastSecond;
 
 void setup() {
   lcd.begin(16, 2);
   lcd.clear();     
   pinMode(cookieBtn, INPUT);
   pinMode(multiplierBtn, INPUT);    
-  pinMode(shopBtn1, INPUT);    
-  pinMode(shopBtn2, INPUT);   
-  pinMode(shopBtn3, INPUT);   
-  pinMode(shopBtn4, INPUT);   
+  pinMode(shopFarmBtn, INPUT);    
+  pinMode(shopFactoryBtn, INPUT);   
+  pinMode(shopMineBtn, INPUT);   
+  pinMode(shopClonerBtn, INPUT);   
+  lastSecond = millis();
   infoMsg = String("Cookies");
 }
 
-void enoughCookies(unsigned long price){
-   if (price > cookiesQuantity)  {
+boolean enoughCookies(unsigned long price){
+  if (price > cookiesQuantity)  
+  {
     infoMsg = String("Malo cookies");
     msgDelay = millis() + 2000;
-    }
+    return false;
+  }
+  else
+  {
+    return true;
+  }
+}
+
+long shopEngine(long price, byte raise, int add){
+  long newPrice;
+	if (enoughCookies(price))  
+	{
+	  perSecondAdd += add;
+          newPrice = price + (price*raise/100);
+          infoMsg = String(newPrice);
+          msgDelay = millis() + 2000;
+          cookiesQuantity -= price;
+	  return newPrice;
+        }
+	else
+	{
+	  return price;
+	}
 }
 
 
@@ -55,10 +100,10 @@ void loop() {
   
   currentStateCookieBtn = digitalRead(cookieBtn);
   currentStateMultiplierBtn = digitalRead(multiplierBtn);
-  currentStateShopBtn1 = digitalRead(shopBtn1);
-  currentStateShopBtn2 = digitalRead(shopBtn2);
-  currentStateShopBtn3 = digitalRead(shopBtn3);
-  currentStateShopBtn4 = digitalRead(shopBtn4);
+  currentStateShopFarmBtn = digitalRead(shopFarmBtn);
+  currentStateShopFactoryBtn = digitalRead(shopFactoryBtn);
+  currentStateShopMineBtn = digitalRead(shopMineBtn);
+  currentStateShopClonerBtn = digitalRead(shopClonerBtn);
   
   
   if(currentStateCookieBtn == 1 && lastStateCookieBtn == 0){
@@ -80,63 +125,52 @@ void loop() {
   
   // Tlačítko 1------------------------------------------------------------------------------------
   
-  if(currentStateShopBtn1 == 1 && lastStateShopBtn1 == 0){  
-    enoughCookies(priceOfMultiplier[counterMultiplierBuy]);
-    if(cookiesQuantity >= priceOfMultiplier[counterMultiplierBuy]){
-      increment *= 2;
-      cookiesQuantity -= priceOfMultiplier[counterMultiplierBuy];         
-      counterMultiplierBuy++;
-    }
-    lastStateShopBtn1 = 1;
+  if(currentStateShopFarmBtn == 1 && lastStateShopFarmBtn == 0){   
+      priceFarm = shopEngine(priceFarm, percentageRaiseFarm, addFarm); 
+      lastStateShopFarmBtn = 1;
   }
-  else if (currentStateShopBtn1 == 0 && lastStateShopBtn1 == 1) lastStateShopBtn1 = 0;
+  else if (currentStateShopFarmBtn == 0 && lastStateShopFarmBtn == 1) lastStateShopFarmBtn = 0;
   
   // Tlačítko 2------------------------------------------------------------------------------------
   
-  if(currentStateShopBtn2 == 1 && lastStateShopBtn2 == 0){  
-    enoughCookies(priceOfMultiplier[counterMultiplierBuy]);
-    if(cookiesQuantity >= priceOfMultiplier[counterMultiplierBuy]){
-      increment *= 2;
-      cookiesQuantity -= priceOfMultiplier[counterMultiplierBuy];         
-      counterMultiplierBuy++;
-    }
-    lastStateShopBtn2 = 1;
+  if(currentStateShopFactoryBtn == 1 && lastStateShopFactoryBtn == 0){  
+    priceFactory = shopEngine(priceFactory, percentageRaiseFactory, addFactory); 
+    lastStateShopFactoryBtn = 1;
   }
-  else if (currentStateShopBtn2 == 0 && lastStateShopBtn2 == 1) lastStateShopBtn2 = 0;
+  else if (currentStateShopFactoryBtn == 0 && lastStateShopFactoryBtn == 1) lastStateShopFactoryBtn = 0;
 
   // Tlačítko 3------------------------------------------------------------------------------------
   
-  if(currentStateShopBtn3 == 1 && lastStateShopBtn3 == 0){  
-    enoughCookies(priceOfMultiplier[counterMultiplierBuy]);
-    if(cookiesQuantity >= priceOfMultiplier[counterMultiplierBuy]){
-      increment *= 2;
-      cookiesQuantity -= priceOfMultiplier[counterMultiplierBuy];         
-      counterMultiplierBuy++;
-    }
-    lastStateShopBtn3 = 1;
+  if(currentStateShopMineBtn == 1 && lastStateShopMineBtn == 0){  
+    priceMine = shopEngine(priceMine, percentageRaiseMine, addMine); 
+    lastStateShopMineBtn = 1;
   }
-  else if (currentStateShopBtn3 == 0 && lastStateShopBtn3 == 1) lastStateShopBtn3 = 0;
+  else if (currentStateShopMineBtn == 0 && lastStateShopMineBtn == 1) lastStateShopMineBtn = 0;
   
     // Tlačítko 4------------------------------------------------------------------------------------
   
-  if(currentStateShopBtn4 == 1 && lastStateShopBtn4 == 0){  
-    enoughCookies(priceOfMultiplier[counterMultiplierBuy]);
-    if(cookiesQuantity >= priceOfMultiplier[counterMultiplierBuy]){
-      increment *= 2;
-      cookiesQuantity -= priceOfMultiplier[counterMultiplierBuy];         
-      counterMultiplierBuy++;
-    }
-    lastStateShopBtn4 = 1;
+  if(currentStateShopClonerBtn == 1 && lastStateShopClonerBtn == 0){  
+    priceCloner = shopEngine(priceCloner, percentageRaiseCloner, addCloner); 
+    lastStateShopClonerBtn = 1;
   }
-  else if (currentStateShopBtn4 == 0 && lastStateShopBtn4 == 1) lastStateShopBtn4 = 0;
+  else if (currentStateShopClonerBtn == 0 && lastStateShopClonerBtn == 1) lastStateShopClonerBtn = 0;
+
+
   
-  delay(50);
+
+if((millis() - lastSecond) > 1000) {
+
+lastSecond = millis();
+cookiesQuantity += perSecondAdd;
+}
+  
+  delay(30);
   lcd.clear();     
   lcd.setCursor(0, 0);
   if (msgDelay < millis() ) {    infoMsg = String("Cookies");    }
   lcd.print(infoMsg);
   lcd.setCursor(0, 1);
   lcd.print(cookiesQuantity);
-}
 
+}
 
