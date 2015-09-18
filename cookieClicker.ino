@@ -1,37 +1,50 @@
 #include <LiquidCrystal.h>
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
-byte cookieBtn = 6;                  // pin tlačítka pro počítání cookies
-byte currentStateCookieBtn;          // aktuální stav tlačítka pro počítání cookies
-byte lastStateCookieBtn = 0;         // minulý stav tlačítka pro počítání cookies
-byte multiplierBtn = 7;              // pin tlačítka pro násobič přičítané hodnoty
-byte currentStateMultiplierBtn = 0;  // aktuální stav tlačítka pro násobič přičítané hodnoty
-byte lastStateMultiplierBtn = 0;     // minulý stav tlačítka pro násobič přičítané hodnoty
+// Nastaveni pinů pro vstupy a výstupy a inicializace pomocných proměnných
 
+//  Tlačítko a proměnné požívané pro tlačítka pro přičítání cookies 
+byte cookieBtn = 6;                  // pin tlačítka pro počítání cookies
+byte currentStateCookieBtn;          // proměnná, do které ukádáme aktuální stav tlačítka pro počítání cookies 
+byte lastStateCookieBtn = 0;         // proměnná, kam si ukládáme minulý stav tlačítka pro počítání cookies
+
+// Tlačítko násobič cookies
+byte multiplierBtn = 7;              
+byte currentStateMultiplierBtn = 0;  
+byte lastStateMultiplierBtn = 0;     
+
+// Položky obchodu
+// Cookie Farm
 byte shopFarmBtn = 15;
 byte currentStateShopFarmBtn; 
 byte lastStateShopFarmBtn = 0;
 
+// Cookie factory
 byte shopFactoryBtn = 16;
 byte currentStateShopFactoryBtn; 
 byte lastStateShopFactoryBtn = 0;
 
+// Cookie Mine
 byte shopMineBtn = 17;
 byte currentStateShopMineBtn; 
 byte lastStateShopMineBtn = 0;
 
+// Cookie clooner
 byte shopClonerBtn = 18;
 byte currentStateShopClonerBtn; 
 byte lastStateShopClonerBtn = 0;
 
+
+// Nastavení proměnných
 unsigned long cookiesQuantity =  0;                              // celkový počet cookies
 long increment = 1;                                              // přičítaná hodnota
 int priceOfMultiplier[] = {10,20,30,40,50,250,600,9999999};      // cena násobiče cookies
 byte counterMultiplierBuy = 0;                                   // kolikrát koupeno
 
-long priceFarm = 100;
-byte percentageRaiseFarm = 10;
-int addFarm = 5;
+// Nastavení položek proměnných
+long priceFarm = 100;             // počáteční cena na koupení položky
+byte percentageRaiseFarm = 10;    // o kolik procent se zvýší cena položky po koupení
+int addFarm = 5;                  // kolik cookies za sekundu se bude přičítat
 
 long priceFactory = 500;
 byte percentageRaiseFactory = 15;
@@ -45,6 +58,7 @@ long priceCloner = 10000;
 byte percentageRaiseCloner = 50;
 int addCloner = 100;
 
+// Nastavení výstupů pro barevné LED, které zobrazují, zda položku obchodu lze nebo nelze koupit
 byte diodeMultiplierG = 42;
 byte diodeMultiplierR = 43;
 
@@ -60,22 +74,26 @@ byte diodeMineR = 49;
 byte diodeClonerG = 50;
 byte diodeClonerR = 51;
 
+// Nastavení pomocných zpráv
 String infoMsg;
 unsigned long msgDelay = 0;
 
+// Nastavení pro automatické přičítání cookies každou sekundu
 long perSecondAdd = 0;
 long lastSecond;
 
 void setup() {
-  lcd.begin(16, 2);
+  // inicializace displaye
+  lcd.begin(16, 2);                           
   lcd.clear();     
+  // inicializace pinů pro vstupy z tlačítek
   pinMode(cookieBtn, INPUT);
   pinMode(multiplierBtn, INPUT);    
   pinMode(shopFarmBtn, INPUT);    
   pinMode(shopFactoryBtn, INPUT);   
   pinMode(shopMineBtn, INPUT);   
   pinMode(shopClonerBtn, INPUT);   
-  
+  // inicializace pinů pro výstupy na LEDky
   pinMode(diodeMultiplierG, OUTPUT);
   pinMode(diodeMultiplierR, OUTPUT);
   pinMode(diodeFarmG, OUTPUT);
@@ -86,7 +104,8 @@ void setup() {
   pinMode(diodeMineR, OUTPUT);
   pinMode(diodeClonerG, OUTPUT);
   pinMode(diodeClonerR, OUTPUT);  
-  
+
+  // rozsvícení LEDek
   digitalWrite(diodeMultiplierG, 1);
   digitalWrite(diodeMultiplierR, 0);
   digitalWrite(diodeFarmG, 1);
@@ -95,15 +114,16 @@ void setup() {
   digitalWrite(diodeFactoryR, 0);
   digitalWrite(diodeMineG, 1);
   digitalWrite(diodeMineR, 0);
-  lastSecond = millis();
+  lastSecond = millis();            // uložíme si aktuální počet ms od začátku běhu Arduina
   infoMsg = String("Cookies");
 }
 
+
+// Funkce pro zjištění, zda mohu položku obchodu koupit
+// Přijímá hodnotu ceny, za kterou se dá položka koupit a porovná ji s hodnoutou celkového množství cookies
 boolean enoughCookies(unsigned long price){
   if (price > cookiesQuantity)  
   {
-//    infoMsg = String("Malo cookies");
-    msgDelay = millis() + 2000;
     return false;
   }
   else
@@ -112,6 +132,9 @@ boolean enoughCookies(unsigned long price){
   }
 }
 
+
+// Funkce shopStatus se stará o vizualizaci možností koupit položku
+// Rozsvěcí zelené nebo červené LEDky podle hodnot, které mu vrátí funkce enoughCookies
 void shopStatus() {
   if (enoughCookies(priceOfMultiplier[counterMultiplierBuy]))
   {
@@ -172,50 +195,55 @@ void shopStatus() {
   
 }
 
+
+// Funkce shopEngine se stará o logiku nakupování věcí z shopu
+// vstupní hodnoty jsou cena položky, procenta navýšení ceny a hodnota, kolik cookies za sekundu položka shopu přidává
 long shopEngine(long price, byte raise, int add){
   long newPrice;
-	if (enoughCookies(price))  
+	if (enoughCookies(price))                       // pokud máme dost cookies (cena je menší než celkový počet cookies)
 	{
-	  perSecondAdd += add;
-          newPrice = price + (price*raise/100);
-//          infoMsg = String(newPrice);
-          msgDelay = millis() + 2000;
-          cookiesQuantity -= price;
-	  return newPrice;
-        }
+	  perSecondAdd += add;                          // nastavíme novou hodnotu přírustku cookies za sekundu
+    newPrice = price + (price*raise/100);         // zvýšíme cenu položky shopu o počet procent "raise"
+    cookiesQuantity -= price;                     // zaplacenou cenu odečteme od celkového počt cookies
+	  return newPrice;                              // a vrátíme novou cenu položky
+  }
 	else
 	{
-	  return price;
+	  return price;                                 // pokud k nákupu nedojde, vrátíme původní cenu
 	}
 }
 
-
+// Hlavni program
 void loop() {
-  
+  // Na začátku smyčky si načtene stavy tlačítek
   currentStateCookieBtn = digitalRead(cookieBtn);
   currentStateMultiplierBtn = digitalRead(multiplierBtn);
   currentStateShopFarmBtn = digitalRead(shopFarmBtn);
   currentStateShopFactoryBtn = digitalRead(shopFactoryBtn);
   currentStateShopMineBtn = digitalRead(shopMineBtn);
   currentStateShopClonerBtn = digitalRead(shopClonerBtn);
-  
+  // Nastvíme aktuální stav obchodu
   shopStatus();
-    
+
+  // Zjistíme, zda je tlačítko stisknuté a minule nebylo - tím zabráníme, aby program počítal neustále stiknuté tlačítko jako stisky.
+  // Uživatel opravdu musí tlačítko pustit a znovu stisknout. Požíváme tuto logiku testování u všech tlačítek
   if(currentStateCookieBtn == 1 && lastStateCookieBtn == 0)
   {
+    // přičteme cookies k celkovému počtu a změníme minulý stav tlačítka na stisknuté
     cookiesQuantity += increment;
     lastStateCookieBtn = 1;
   }
-  else if (currentStateCookieBtn == 0 && lastStateCookieBtn == 1) lastStateCookieBtn = 0;
+  else if (currentStateCookieBtn == 0 && lastStateCookieBtn == 1) lastStateCookieBtn = 0; // jinak nastavíme, že tlačítko stisknuté není
   
+  // Tlačítko násobiče přičítání cookies
   if(currentStateMultiplierBtn == 1 && lastStateMultiplierBtn == 0)
   {  
-    enoughCookies(priceOfMultiplier[counterMultiplierBuy]);
-    if(cookiesQuantity >= priceOfMultiplier[counterMultiplierBuy])
+    if(cookiesQuantity >= priceOfMultiplier[counterMultiplierBuy])  // pokud máme dost cookies
     {
-      increment *= 2;
-      cookiesQuantity -= priceOfMultiplier[counterMultiplierBuy];         
-      counterMultiplierBuy++;
+      increment *= 2;                                               // zdvojnásobíme přičítanou hodnotu
+      cookiesQuantity -= priceOfMultiplier[counterMultiplierBuy];   // a odečteme cenu od celkového počtu
+      counterMultiplierBuy++;                                       // a zvýšíme hodnotu počtu zakopení - pdole ní v poly cen určujeme aktuální cenu
+                                                                    // Toto platí pro násobič, u položek shopu se o změnu ceny stará funkce shopEngine
     }
     lastStateMultiplierBtn = 1;
   }
@@ -225,7 +253,7 @@ void loop() {
   
   if(currentStateShopFarmBtn == 1 && lastStateShopFarmBtn == 0)
   {   
-      priceFarm = shopEngine(priceFarm, percentageRaiseFarm, addFarm); 
+      priceFarm = shopEngine(priceFarm, percentageRaiseFarm, addFarm);  //  platí pro všechny položky shopu, shopEngine nám zvýší počet přičítaných cookies a vrátí novou cenu nebo zachová původní
       lastStateShopFarmBtn = 1;
   }
   else if (currentStateShopFarmBtn == 0 && lastStateShopFarmBtn == 1) lastStateShopFarmBtn = 0;
@@ -258,24 +286,21 @@ void loop() {
   else if (currentStateShopClonerBtn == 0 && lastStateShopClonerBtn == 1) lastStateShopClonerBtn = 0;
 
 
-  
-
+// Přičítání hodnot každou vteřinu
+// pokud je rozdíl aktuálního počtu milisekund od začátku běhu programu větší o 1000 než hodnota v lastSeconds
+// znamená to, že uběhla minimálně 1s.
+// K celkové hodnotě se pak přičte aktuální sekundový přírustek a nastaví se nová hodnota pro lastSecond
 if((millis() - lastSecond) > 1000) 
 {
   lastSecond = millis();
   cookiesQuantity += perSecondAdd;
 }
-  
-  delay(30);
+
+  delay(30);                    // nastavení zpoždění kvůli omezení blikání displaye
   lcd.clear();     
-  lcd.setCursor(0, 0);
-  if (msgDelay < millis())
-  {
-    infoMsg = String("Cookies");    
-  }
-  lcd.print(infoMsg);
-  lcd.setCursor(0, 1);
-  lcd.print(cookiesQuantity);
+  lcd.setCursor(0, 0);          // Nastavení kurzoru na začátek prvního řádku
+  lcd.print(infoMsg);           // a vypsání zprávy ("Cookies:")
+  lcd.setCursor(0, 1);          // Nastavení kurzoru na začátek druhého řádku displaye
+  lcd.print(cookiesQuantity);   // a vypsání celkového počtu cookies
 
 }
-
