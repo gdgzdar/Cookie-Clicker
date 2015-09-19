@@ -34,7 +34,7 @@ And orthers...
 
 ###official website: http://www.gug.cz/cs/gdg/skupiny/zdar-nad-sazavou
 ###google developers: https://developers.google.com/groups/chapter/102250748568826837974/
-###google plus: gplus.to/gdgzdarnadsazavou
+###google plus: https://gplus.to/gdgzdarnadsazavou
 ###Facebook: https://www.facebook.com/gdgzdarnadsazavou
 
 ###E-mail: gdgzdar@gug.cz
