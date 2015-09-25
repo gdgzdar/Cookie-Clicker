@@ -1,0 +1,22 @@
+Hardware:
+  1x      Arduino MEGA
+  5x      RG  Led 
+  6x      Button
+  1x      16x2 LCD Display
+  1x      10kOHM potenciometer
+  2x      mini breadboard
+  1x      small breadboard
+  lot of  Jumpers
+  some    wire
+  12x     220 OHM resistor
+  some    hot glue
+  
+
+Construction:
+  1x      Main desk
+  6x      distance column
+  
+Behaviors:
+  patience
+  dexterity
+  ;)
